@@ -127,6 +127,7 @@ export declare class Consumer extends EnhancedEventEmitter {
     private _preferredLayers?;
     private _currentLayers?;
     private readonly _observer;
+    private readonly _payloadChannelListener;
     /**
      * @private
      * @emits transportclose
@@ -265,5 +266,6 @@ export declare class Consumer extends EnhancedEventEmitter {
      */
     enableTraceEvent(types?: ConsumerTraceEventType[]): Promise<void>;
     private _handleWorkerNotifications;
+    private _onPayloadChannelEvent;
 }
 //# sourceMappingURL=Consumer.d.ts.map

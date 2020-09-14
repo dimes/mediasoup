@@ -54,6 +54,7 @@ export declare class DataConsumer extends EnhancedEventEmitter {
     private _closed;
     private readonly _appData?;
     private readonly _observer;
+    private readonly _payloadChannelListener;
     /**
      * @private
      * @emits transportclose
@@ -144,5 +145,6 @@ export declare class DataConsumer extends EnhancedEventEmitter {
      */
     getBufferedAmount(): Promise<number>;
     private _handleWorkerNotifications;
+    private _onPayloadChannelEvent;
 }
 //# sourceMappingURL=DataConsumer.d.ts.map

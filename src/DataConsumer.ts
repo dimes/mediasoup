@@ -93,6 +93,13 @@ export class DataConsumer extends EnhancedEventEmitter
 	// Observer instance.
 	private readonly _observer = new EnhancedEventEmitter();
 
+	// Listener on the payload channel
+	private readonly _payloadChannelListener: (
+		event: string, 
+		data: any | undefined, 
+		payload: Buffer
+	) => void;
+
 	/**
 	 * @private
 	 * @emits transportclose
@@ -129,6 +136,7 @@ export class DataConsumer extends EnhancedEventEmitter
 		this._channel = channel;
 		this._payloadChannel = payloadChannel;
 		this._appData = appData;
+		this._payloadChannelListener = this._onPayloadChannelEvent.bind(this);
 
 		this._handleWorkerNotifications();
 	}
@@ -229,6 +237,9 @@ export class DataConsumer extends EnhancedEventEmitter
 
 		// Remove notification subscriptions.
 		this._channel.removeAllListeners(this._internal.dataConsumerId);
+		this._payloadChannel.off(
+			this._internal.dataConsumerId,
+			this._payloadChannelListener);
 
 		this._channel.request('dataConsumer.close', this._internal)
 			.catch(() => {});
@@ -255,6 +266,9 @@ export class DataConsumer extends EnhancedEventEmitter
 
 		// Remove notification subscriptions.
 		this._channel.removeAllListeners(this._internal.dataConsumerId);
+		this._payloadChannel.off(
+			this._internal.dataConsumerId,
+			this._payloadChannelListener);
 
 		this.safeEmit('transportclose');
 
@@ -368,6 +382,9 @@ export class DataConsumer extends EnhancedEventEmitter
 
 					// Remove notification subscriptions.
 					this._channel.removeAllListeners(this._internal.dataConsumerId);
+					this._payloadChannel.off(
+						this._internal.dataConsumerId,
+						this._payloadChannelListener);
 
 					this.emit('@dataproducerclose');
 					this.safeEmit('dataproducerclose');
@@ -403,28 +420,34 @@ export class DataConsumer extends EnhancedEventEmitter
 
 		this._payloadChannel.on(
 			this._internal.dataConsumerId,
-			(event: string, data: any | undefined, payload: Buffer) =>
+			this._payloadChannelListener);
+	}
+
+	private _onPayloadChannelEvent(
+		event: string, 
+		data: any | undefined, 
+		payload: Buffer
+	): void
+	{
+		switch (event)
+		{
+			case 'message':
 			{
-				switch (event)
-				{
-					case 'message':
-					{
-						if (this._closed)
-							break;
+				if (this._closed)
+					break;
 
-						const ppid = data.ppid as number;
-						const message = payload;
+				const ppid = data.ppid as number;
+				const message = payload;
 
-						this.safeEmit('message', message, ppid);
+				this.safeEmit('message', message, ppid);
 
-						break;
-					}
+				break;
+			}
 
-					default:
-					{
-						logger.error('ignoring unknown event "%s" in payload channel listener', event);
-					}
-				}
-			});
+			default:
+			{
+				logger.error('ignoring unknown event "%s" in payload channel listener', event);
+			}
+		}
 	}
 }

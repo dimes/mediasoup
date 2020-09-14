@@ -197,7 +197,11 @@ export class Consumer extends EnhancedEventEmitter
 	private readonly _observer = new EnhancedEventEmitter();
 
 	// Listener on the payload channel
-	private readonly _payloadChannelListener = this._onPayloadChannelEvent.bind(this);
+	private readonly _payloadChannelListener: (
+		event: string, 
+		data: any | undefined, 
+		payload: Buffer
+	) => void;
 
 	/**
 	 * @private
@@ -249,6 +253,7 @@ export class Consumer extends EnhancedEventEmitter
 		this._producerPaused = producerPaused;
 		this._score = score;
 		this._preferredLayers = preferredLayers;
+		this._payloadChannelListener = this._onPayloadChannelEvent.bind(this);
 
 		this._handleWorkerNotifications();
 	}
@@ -678,7 +683,12 @@ export class Consumer extends EnhancedEventEmitter
 			this._payloadChannelListener);
 	}
 
-	private _onPayloadChannelEvent(event: string, data: any | undefined, payload: Buffer): void {
+	private _onPayloadChannelEvent(
+		event: string, 
+		data: any | undefined, 
+		payload: Buffer
+	): void 
+	{
 		switch (event)
 		{
 			case 'rtp':
